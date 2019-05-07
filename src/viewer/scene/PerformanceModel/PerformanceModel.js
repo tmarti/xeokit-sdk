@@ -430,13 +430,28 @@ class PerformanceModel extends Component {
 
             var indices = cfg.indices;
             var edgeIndices = cfg.edgeIndices;
-            var positions = cfg.positions;
+
+            var positions;
+
+            if (cfg.isQuantized) {
+                positions = cfg.quantizedPositions;
+            } else {
+                positions = cfg.positions;
+            }
+
             if (!positions) {
                 this.error("Config missing: positions (no meshIds provided, so expecting geometry arrays instead)");
                 return null;
             }
 
-            var normals = cfg.normals;
+            var normals;
+
+            if (cfg.isTransformedAndEncoded) {
+                normals = cfg.encodedNormals;
+            } else {
+                normals = cfg.normals;
+            }
+
             if (!normals) {
                 this.error("Config missing: normals (no meshIds provided, so expecting geometry arrays instead)");
                 return null;
@@ -448,14 +463,20 @@ class PerformanceModel extends Component {
             }
 
             if (tile.currentBatchingLayer) {
-                if (!tile.currentBatchingLayer.canCreatePortion(cfg.positions.length)) {
+                if (!tile.currentBatchingLayer.canCreatePortion(positions.length)) {
                     tile.currentBatchingLayer.finalize();
                     tile.currentBatchingLayer = null;
                 }
             }
 
             if (!tile.currentBatchingLayer) {
-                tile.currentBatchingLayer = new BatchingLayer(this, {primitive: "triangles", buffer: tile.buffer});
+                tile.currentBatchingLayer = new BatchingLayer(this, {
+                    primitive: "triangles",
+                    buffer: tile.buffer,
+                    isTransformedAndEncoded: cfg.isTransformedAndEncoded,
+                    isQuantized: cfg.isQuantized,
+                    positionsDecodeMatrix: cfg.positionsDecodeMatrix,
+                });
                 tile.layers.push(tile.currentBatchingLayer);
             }
 
@@ -464,6 +485,9 @@ class PerformanceModel extends Component {
                 edgeIndices = buildEdgeIndices(positions, indices, null, 10);
             }
 
+            if (cfg.isTransformedAndEncoded) {
+                aabb = cfg.aabb;
+            }
             portionId = tile.currentBatchingLayer.createPortion(positions, normals, indices, edgeIndices, flags, color, opacity, matrix, aabb, pickColor);
             math.expandAABB3(this._aabb, aabb);
             this.numGeometries++;
