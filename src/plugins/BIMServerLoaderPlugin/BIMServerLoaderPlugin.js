@@ -121,6 +121,7 @@ class BIMServerLoaderPlugin extends Plugin {
      * @param {Object} cfg  Plugin configuration.
      * @param {String} [cfg.id="BIMServerModels"] Optional ID for this plugin, so that we can find it within {@link Viewer#plugins}.
      * @param {Object} cfg.bimServerClient A BIMServer client API instance.
+     * @param {{String:Object}} [cfg.objectDefaults] Map of initial default states for each loaded {@link Entity} that represents an object. Default value for this parameter is {@link IFCObjectDefaults}.
      */
     constructor(viewer, cfg) {
 
@@ -177,7 +178,7 @@ class BIMServerLoaderPlugin extends Plugin {
     }
 
     /**
-     * Loads a model from a BIMServer into this GLTFLoaderPlugin's {@link Viewer}.
+     * Loads a model from a BIMServer into this BIMServerLoaderPlugin's {@link Viewer}.
      *
      * Creates a tree of {@link Entity}s that represents the model.
      *
@@ -188,7 +189,7 @@ class BIMServerLoaderPlugin extends Plugin {
      * @param {Number} params.poid ID of the model's project within BIMServer.
      * @param {Number} params.roid ID of the model's revision within BIMServer. See the class example for how to query the latest project revision ID via the BIMServer client API.
      * @param {Number} params.schema The model's IFC schema. See the class example for how to query the project's schema via the BIMServer client API.
-     * @param {{String:Object}} [params.objectDefaults] Map of initial default states for each loaded {@link PerformanceNode} that represents an object. Default value for this parameter is {@link IFCObjectDefaults}.
+     * @param {{String:Object}} [params.objectDefaults] Map of initial default states for each loaded {@link Entity} that represents an object. Default value for this parameter is {@link IFCObjectDefaults}.
      * @param {Boolean} [params.edges=false] Whether or not xeokit renders the model with edges emphasized.
      * @param {Number[]} [params.position=[0,0,0]] The model World-space 3D position.
      * @param {Number[]} [params.scale=[1,1,1]] The model's World-space scale.
@@ -223,7 +224,7 @@ class BIMServerLoaderPlugin extends Plugin {
         var onTick;
 
         if (!poid) {
-            model.error("load() param expected: poid");
+            this.error("load() param expected: poid");
             return performanceModel; // TODO: Finalize?
         }
 
